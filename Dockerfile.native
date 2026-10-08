@@ -1,0 +1,18 @@
+ARG UBI_RUNTIME_IMAGE=registry.udd.attijariwafa.net/base/ubi9/ubi:latest
+FROM ${UBI_RUNTIME_IMAGE}
+
+WORKDIR /app
+
+# Produced by `./mvnw -Pnative native:compile`; the name comes from
+# native-maven-plugin's <imageName>${project.artifactId}</imageName>.
+COPY target/epargne-opcvm /app/epargne-opcvm
+
+# COPY preserves the source file mode. When the build context sits on NTFS - a Windows
+# workstation building through WSL - there is no Unix exec bit to preserve and the
+# binary lands as 0644, so the container exits immediately with "permission denied".
+# Harmless when the context is already Linux, as it is on the Jenkins agent.
+RUN chmod +x /app/epargne-opcvm
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/epargne-opcvm"]

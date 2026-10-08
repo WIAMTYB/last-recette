@@ -1,0 +1,404 @@
+{
+  "info": {
+    "name": "Epargne programmee - tests",
+    "description": "Tests Postman pour epargne-programmee et api-titres (solde + execution).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "epargne_base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "api_titres_base_url",
+      "value": "http://ctd-editiq-prd.attijariwafa.net:9234"
+    },
+    {
+      "key": "epargne_api_key",
+      "value": "ak_TOKEN_ID.secret_epargne"
+    },
+    {
+      "key": "api_titres_api_key",
+      "value": "ak_f0dpX3kwufD7G2Vhr0TvJQ.RRdvgM2585SZVTsvtI21bzQrQ4_h-LSTCca4qp9Xf3g"
+    },
+    {
+      "key": "plan_reference",
+      "value": "EP000014"
+    },
+    {
+      "key": "client_sec_account",
+      "value": "0000163838"
+    },
+    {
+      "key": "client_cash_account",
+      "value": "001031000610865"
+    },
+    {
+      "key": "asset_code",
+      "value": "MA0000030694"
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - api-titres",
+      "item": [
+        {
+          "name": "1.1 Cash balance (POST /cash/balances)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json;charset=UTF-8"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Api-Key",
+                "value": "{{api_titres_api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caller\": \"EPG\",\n  \"compte\": \"{{client_cash_account}}\",\n  \"correlationId\": \"postman-test-1\"\n}"
+            },
+            "url": "{{api_titres_base_url}}/cash/balances",
+            "description": "Attendu: returnCode=0. soldeDisponible est en CENTIMES. DH = soldeDisponible / 100."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returnCode = 0', () => pm.expect(body.returnCode).to.eql(0));",
+                  "pm.test('soldeDisponible present', () => pm.expect(body.soldeDisponible).to.not.be.undefined);",
+                  "const soldeDh = body.soldeDisponible / 100;",
+                  "console.log('Solde disponible (DH):', soldeDh);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 Compte titre / espèces (GET /secaccount/getbycashaccounts)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json;charset=UTF-8"
+              },
+              {
+                "key": "X-Api-Key",
+                "value": "{{api_titres_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_titres_base_url}}/secaccount/getbycashaccounts?cashaccounts={{client_cash_account}}",
+              "host": ["{{api_titres_base_url}}"],
+              "path": ["secaccount", "getbycashaccounts"],
+              "query": [
+                {
+                  "key": "cashaccounts",
+                  "value": "{{client_cash_account}}"
+                }
+              ]
+            },
+            "description": "Verifie le couple compte titre / espèces (check creation plan)."
+          }
+        },
+        {
+          "name": "1.3 Catalogue OPC (GET /tradableasset/v2/listforsrtrade)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json;charset=UTF-8"
+              },
+              {
+                "key": "X-Api-Key",
+                "value": "{{api_titres_api_key}}"
+              }
+            ],
+            "url": "{{api_titres_base_url}}/tradableasset/v2/listforsrtrade"
+          }
+        },
+        {
+          "name": "1.4 Lister ordres SR (GET /srtrade/listorders)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json;charset=UTF-8"
+              },
+              {
+                "key": "X-Api-Key",
+                "value": "{{api_titres_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_titres_base_url}}/srtrade/listorders?secaccount={{client_sec_account}}&skip=0&take=10&filter[0][field]=referenceclient&filter[0][operator]=eq&filter[0][value]={{plan_reference}}:2026-07-22",
+              "host": ["{{api_titres_base_url}}"],
+              "path": ["srtrade", "listorders"],
+              "query": [
+                {
+                  "key": "secaccount",
+                  "value": "{{client_sec_account}}"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "take",
+                  "value": "10"
+                },
+                {
+                  "key": "filter[0][field]",
+                  "value": "referenceclient"
+                },
+                {
+                  "key": "filter[0][operator]",
+                  "value": "eq"
+                },
+                {
+                  "key": "filter[0][value]",
+                  "value": "{{plan_reference}}:2026-07-22"
+                }
+              ]
+            },
+            "description": "Apres execute-due SUCCESS: verifier ordre MegaTrade. Adapter la date du filter."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - epargne",
+      "item": [
+        {
+          "name": "2.1 Creer un plan (POST /api/v1/plans)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Api-Key",
+                "value": "{{epargne_api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientSecAccount\": \"{{client_sec_account}}\",\n  \"clientCashAccount\": \"{{client_cash_account}}\",\n  \"assetCode\": \"{{asset_code}}\",\n  \"byAmount\": true,\n  \"recurringAmount\": 500,\n  \"recurringQuantity\": null,\n  \"frequency\": \"MONTHLY\",\n  \"preferredDayOfMonth\": 22\n}"
+            },
+            "url": "{{epargne_base_url}}/api/v1/plans"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body.reference) {",
+                  "  pm.collectionVariables.set('plan_reference', body.reference);",
+                  "  console.log('Plan cree:', body.reference);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 Consulter un plan (GET /api/v1/plans/{reference})",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Api-Key",
+                "value": "{{epargne_api_key}}"
+              }
+            ],
+            "url": "{{epargne_base_url}}/api/v1/plans/{{plan_reference}}"
+          }
+        },
+        {
+          "name": "2.3 Executer plans dus (POST /api/v1/plans/execute-due)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Api-Key",
+                "value": "{{epargne_api_key}}"
+              }
+            ],
+            "url": "{{epargne_base_url}}/api/v1/plans/execute-due",
+            "description": "Pre-requis SQL: NEXT_EXECUTION_DATE <= aujourd'hui et STATUS=ACTIVE.\n\nResultats possibles dans executions:\n- INSUFFICIENT_FUNDS (solde < montant)\n- SUCCESS (ordre passe)\n- ORDER_REJECTED (erreur api-titres/MegaTrade)\n- TECHNICAL_FAILURE (erreur solde API)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "console.log('Plans traites:', body.processedCount, body.references);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 Historique executions (GET /api/v1/plans/{reference}/executions)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Api-Key",
+                "value": "{{epargne_api_key}}"
+              }
+            ],
+            "url": "{{epargne_base_url}}/api/v1/plans/{{plan_reference}}/executions"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Au moins une execution', () => pm.expect(body.length).to.be.above(0));",
+                  "const last = body[0];",
+                  "console.log('Dernier resultat:', last.resultStatus, last.message);",
+                  "if (last.resultStatus === 'INSUFFICIENT_FUNDS') {",
+                  "  pm.test('Pas de ref ordre si fonds insuffisants', () => pm.expect(last.externalOrderReference).to.be.null);",
+                  "}",
+                  "if (last.resultStatus === 'SUCCESS') {",
+                  "  pm.test('Ref ordre presente', () => pm.expect(last.externalOrderReference).to.not.be.null);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.5 Lister plans (GET /api/v1/plans)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Api-Key",
+                "value": "{{epargne_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{epargne_base_url}}/api/v1/plans?page=0&size=20",
+              "host": ["{{epargne_base_url}}"],
+              "path": ["api", "v1", "plans"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Scenario test solde",
+      "item": [
+        {
+          "name": "3.1 [api-titres] Solde du compte plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Api-Key",
+                "value": "{{api_titres_api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caller\": \"EPG\",\n  \"compte\": \"{{client_cash_account}}\",\n  \"correlationId\": \"scenario-solde-1\"\n}"
+            },
+            "url": "{{api_titres_base_url}}/cash/balances"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const soldeDh = body.soldeDisponible / 100;",
+                  "const montantPlan = 500;",
+                  "pm.collectionVariables.set('solde_dh', String(soldeDh));",
+                  "console.log('Solde DH:', soldeDh, '| Montant plan:', montantPlan, 'DH');",
+                  "if (soldeDh < montantPlan) {",
+                  "  console.log('=> Attendu apres execute-due: INSUFFICIENT_FUNDS');",
+                  "} else {",
+                  "  console.log('=> Attendu apres execute-due: tentative ordre (SUCCESS ou ORDER_REJECTED)');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 [epargne] execute-due",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Api-Key",
+                "value": "{{epargne_api_key}}"
+              }
+            ],
+            "url": "{{epargne_base_url}}/api/v1/plans/execute-due"
+          }
+        },
+        {
+          "name": "3.3 [epargne] Verifier resultat execution",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Api-Key",
+                "value": "{{epargne_api_key}}"
+              }
+            ],
+            "url": "{{epargne_base_url}}/api/v1/plans/{{plan_reference}}/executions"
+          }
+        }
+      ]
+    }
+  ]
+}
+

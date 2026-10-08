@@ -1,0 +1,10 @@
+{
+  "resources": {
+    "includes": [
+      { "pattern": "\\QMETA-INF/resources/webjars/swagger-ui/\\E.*" },
+      { "pattern": "\\Qorg/springdoc/\\E.*" },
+      { "pattern": "\\Qswagger-ui/\\E.*" },
+      { "pattern": "\\QMETA-INF/resources/swagger-ui/\\E.*" }
+    ]
+  }
+}

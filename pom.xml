@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.7</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.attijariwafa.custody</groupId>
+    <artifactId>epargne-si-opcvm</artifactId>
+    <version>2.0.4-SNAPSHOT</version>
+    <name>Epargne_OPCVM</name>
+    <description>Recurring subscription plan service</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <jib-maven-plugin.version>3.3.2</jib-maven-plugin.version>
+        <org.jacoco.agent.version>0.8.12</org.jacoco.agent.version>
+        <cyclonedx-maven-plugin.version>2.9.0</cyclonedx-maven-plugin.version>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+   
+        <!-- Correctif Tomcat -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>11.0.22</version>
+        </dependency>
+
+        <!-- Correctifs Spring Framework -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>7.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+            <version>4.0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>7.0.8</version>
+        </dependency>
+         
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+         
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+         
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+         
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+         
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+         
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+         
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-ratelimiter</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+         
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+         
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+         
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>7.0.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>7.0.6</version>
+        </dependency>
+
+    </dependencies>
+    
+
+     <distributionManagement>
+      <snapshotRepository>
+        <uniqueVersion>false</uniqueVersion>
+        <id>titres-ordres-recurrents-snapshots</id>
+        <name>nexus snapshots</name>
+        <url>http://172.29.7.156:8081/repository/titres-ordres-recurrents-snapshots/</url>
+      </snapshotRepository>
+      <repository>
+        <uniqueVersion>true</uniqueVersion>
+        <id>titres-ordres-recurrents-releases</id>
+        <name>nexus releases</name>
+        <url>http://172.29.7.156:8081/repository/titres-ordres-recurrents-releases/</url>
+      </repository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+          
+             <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${jib-maven-plugin.version}</version>
+                <configuration>
+                    <allowInsecureRegistries>true</allowInsecureRegistries>
+                    <from>
+                    <image>registry.udd.attijariwafa.net/base/ubi9/openjdk-25:latest</image>
+                    </from>
+                    <to>
+                    <image>registry.udd.attijariwafa.net/titres-ordres-recurrents/${project.artifactId}</image>
+                    </to>
+                    <container>
+                    <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                    <user>1001</user>
+                    </container>
+                </configuration>
+            </plugin>
+
+             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${org.jacoco.agent.version}</version>
+                <executions>
+                    <execution>
+                    <id>prepare-agent</id>
+                    <phase>initialize</phase>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                    </execution>
+                    <execution>
+                    <id>report</id>
+                    <phase>test</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                    <exclude>**/Model/**/*</exclude>
+                    <exclude>**/DTO/**/*</exclude>
+                    <exclude>**/config/**/*</exclude>
+                    <exclude>**/security/**/*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>${cyclonedx-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>makeAggregateBom</goal>
+                    </goals>
+                    <!-- Overrides spring-boot-starter-parent, whose managed execution
+                         writes JSON only to target/classes/META-INF/sbom/application.cdx.json.
+                         The Dep Track stage publishes target/bom.xml, so write that name.
+                         This has to sit inside the execution: execution-level config from
+                         the parent beats plugin-level config declared here. -->
+                    <configuration>
+                        <outputDirectory>${project.build.directory}</outputDirectory>
+                        <outputName>bom</outputName>
+                        <outputFormat>all</outputFormat>
+                    </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <configuration>
+                    <imageName>${project.artifactId}</imageName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <!-- AOT processing refreshes the application context at build
+                                 time, so the required ORACLE_*/CLIENTS_* placeholders must
+                                 resolve: application-native-build.properties supplies
+                                 build-only values. -->
+                            <profiles>
+                                <profile>native-build</profile>
+                            </profiles>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
